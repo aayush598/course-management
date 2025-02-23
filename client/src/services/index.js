@@ -110,6 +110,11 @@ export async function createPaymentService(formData) {
   return data;
 }
 
+export async function getFreeCourseService(data){
+  const {CourseData} = await axiosInstance.post(`/student/order/free`, data);
+  return CourseData;
+}
+
 export async function captureAndFinalizePaymentService(
   paymentId,
   payerId,
