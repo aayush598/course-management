@@ -16,6 +16,7 @@ import {
   checkCoursePurchaseInfoService,
   createPaymentService,
   fetchStudentViewCourseDetailsService,
+  getFreeCourseService,
 } from "@/services";
 import { CheckCircle, Globe, Lock, PlayCircle } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
@@ -94,14 +95,21 @@ function StudentViewCourseDetailsPage() {
     };
 
     console.log(paymentPayload, "paymentPayload");
-    const response = await createPaymentService(paymentPayload);
 
-    if (response.success) {
-      sessionStorage.setItem(
-        "currentOrderId",
-        JSON.stringify(response?.data?.orderId)
-      );
-      setApprovalUrl(response?.data?.approveUrl);
+
+    // const response = await createPaymentService(paymentPayload);
+    // const response = {success : true}
+    // if (response.success) {
+    //   sessionStorage.setItem(
+    //     "currentOrderId",
+    //     JSON.stringify(response?.data?.orderId)
+    //   );
+    //   setApprovalUrl(response?.data?.approveUrl);
+    // }
+    const response = await getFreeCourseService(paymentPayload);
+    if (response?.success) {
+      console.log( "response.data success" ,response?.data);
+      
     }
   }
 

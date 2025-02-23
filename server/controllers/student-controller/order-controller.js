@@ -184,4 +184,92 @@ const capturePaymentAndFinalizeOrder = async (req, res) => {
   }
 };
 
-module.exports = { createOrder, capturePaymentAndFinalizeOrder };
+const addCourseForFree = async (req, res) => {
+  try {
+    // const { userId, courseId } = req.body;
+    const {
+      userId,
+      userName,
+      userEmail,
+      orderStatus,
+      paymentMethod,
+      paymentStatus,
+      orderDate,
+      paymentId,
+      payerId,
+      instructorId,
+      instructorName,
+      courseImage,
+      courseTitle,
+      courseId,
+      coursePricing,
+    } = req.body;
+    const course = await Course.findById(courseId);
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: "Course not found",
+      });
+    }
+
+    const studentCourses = await StudentCourses.findOne({
+      userId,
+    });
+
+    if (studentCourses) {
+      studentCourses.courses.push({
+        courseId,
+        title: courseTitle,
+        instructorId: instructorId,
+        instructorName: instructorName,
+        dateOfPurchase: new Date(),
+        courseImage: courseImage,
+      });
+
+      await studentCourses.save();
+    } else {
+      const newStudentCourses = new StudentCourses({
+        userId,
+        courses: [
+          {
+            courseId,
+            title: courseTitle,
+            instructorId: instructorId,
+            instructorName: instructorName,
+            dateOfPurchase: new Date(),
+            courseImage: courseImage,
+          },
+        ],
+      });
+
+      await newStudentCourses.save();
+    }
+
+    //update the course schema students
+   await Course.findByIdAndUpdate(courseId, {
+      $addToSet: {
+        students: {
+          studentId: userId,
+          studentName: userName,
+          studentEmail: userEmail,
+          paidAmount: coursePricing,
+        },
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Order confirmed",
+      data: studentCourses,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      success: false,
+      message: "Some error occured!",
+    });
+  }
+};
+
+module.exports = { createOrder, capturePaymentAndFinalizeOrder , addCourseForFree};
