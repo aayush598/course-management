@@ -169,3 +169,22 @@ export async function resetCourseProgressService(userId, courseId) {
 
   return data;
 }
+
+export const getCertificateService = async (data) => {
+  try {
+    const response = await axiosInstance.post('/student/course-progress/get/certificate', data, {
+      responseType: 'arraybuffer',  // Important for receiving binary data
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    // The PDF buffer will be in response.data
+    return response.data;
+  } catch (error) {
+    console.error('Error getting certificate:', error);
+    throw error;
+  }
+};
+
+
