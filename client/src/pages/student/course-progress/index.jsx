@@ -15,6 +15,7 @@ import VideoPlayer from "@/components/video-player";
 import { AuthContext } from "@/context/auth-context";
 import { StudentContext } from "@/context/student-context";
 import {
+  getCertificateService,
   getCurrentCourseProgressService,
   markLectureAsViewedService,
   resetCourseProgressService,
@@ -26,6 +27,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 function StudentViewCourseProgressPage() {
   const navigate = useNavigate();
+  const [certificate, setCertificate] = useState(null);
   const { auth } = useContext(AuthContext);
   const { studentCurrentCourseProgress, setStudentCurrentCourseProgress } =
     useContext(StudentContext);
@@ -55,6 +57,12 @@ function StudentViewCourseProgressPage() {
 
           return;
         }
+
+        // console.log("StudentContext",StudentContext);
+        console.log("course" , studentCurrentCourseProgress);
+        console.log("auth data" ,auth);
+        
+        
 
         if (response?.data?.progress?.length === 0) {
           setCurrentLecture(response?.data?.courseDetails?.curriculum[0]);
@@ -105,6 +113,39 @@ function StudentViewCourseProgressPage() {
     }
   }
 
+  const handleGetCertificate = async () => {
+    try {
+      const pdfBuffer = await getCertificateService({
+        name: auth?.user?.userName,
+        course: studentCurrentCourseProgress?.courseDetails?.title,
+        date: studentCurrentCourseProgress?.progress?.completionDate || 
+              new Date().toLocaleDateString(),
+      });
+
+      // Create blob from the arrayBuffer
+      const blob = new Blob([pdfBuffer], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+
+      // Create download link
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'certificate.pdf');
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading certificate:', error);
+      // Handle error appropriately
+    }
+  };
+    
+
+  
+
+
   useEffect(() => {
     fetchCurrentCourseProgress();
   }, [id]);
@@ -116,6 +157,26 @@ function StudentViewCourseProgressPage() {
   useEffect(() => {
     if (showConfetti) setTimeout(() => setShowConfetti(false), 15000);
   }, [showConfetti]);
+
+  // useEffect(() => {
+  //   if(certificate){
+  //     const blob = new Blob([certificate], { type: 'application/pdf' });
+
+  //           // Create a URL for the blob
+  //           const url = window.URL.createObjectURL(blob);
+
+  //           // Create an invisible <a> tag
+  //           const link = document.createElement('a');
+  //           link.href = url;
+  //           link.setAttribute('download', 'certificate.pdf'); // File name
+  //           document.body.appendChild(link);
+  //           link.click(); // Trigger download
+
+  //           // Cleanup
+  //           document.body.removeChild(link);
+  //           window.URL.revokeObjectURL(url);
+  //   }
+  // } , [certificate]);
 
   console.log(currentLecture, "currentLecture");
 
@@ -168,7 +229,7 @@ function StudentViewCourseProgressPage() {
           }`}
         >
           <Tabs defaultValue="content" className="h-full flex flex-col">
-            <TabsList className="grid bg-[#1c1d1f] w-full grid-cols-2 p-0 h-14">
+            <TabsList className="grid bg-[#1c1d1f] w-full grid-cols-3 p-0 h-14">
               <TabsTrigger
                 value="content"
                 className=" text-black rounded-none h-full"
@@ -180,6 +241,12 @@ function StudentViewCourseProgressPage() {
                 className=" text-black rounded-none h-full"
               >
                 Overview
+              </TabsTrigger>
+              <TabsTrigger
+                value="certificate"
+                className=" text-black rounded-none h-full"
+              >
+                Certificate
               </TabsTrigger>
             </TabsList>
             <TabsContent value="content">
@@ -215,6 +282,39 @@ function StudentViewCourseProgressPage() {
                 </div>
               </ScrollArea>
             </TabsContent>
+            <TabsContent value="certificate" className="flex-1 overflow-hidden">
+              
+                {
+                  studentCurrentCourseProgress?.progress?.length !== studentCurrentCourseProgress?.courseDetails?.curriculum.length ? (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="flex flex-col items-center space-y-4">
+                        <Check className="h-20 w-20 text-green-500" />
+                        <h2 className="text-2xl font-bold">Congratulations!</h2>
+                        <p>
+                          You have completed the course{" "}
+                          {studentCurrentCourseProgress?.courseDetails?.title}
+                        </p>
+                        <Button onClick={handleGetCertificate}>
+                          Get The Certificate
+                        </Button>
+                        <Button onClick={() => navigate("/student-courses")}>
+                          My Courses Page
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="flex flex-col items-center space-y-4">
+                        <h2 className="text-2xl font-bold">Certificate</h2>
+                        <p>
+                          You need to complete the course to get the certificate
+                        </p>
+                      </div>
+                    </div>
+                  )
+                }
+            
+            </TabsContent>
           </Tabs>
         </div>
       </div>
@@ -229,16 +329,19 @@ function StudentViewCourseProgressPage() {
         </DialogContent>
       </Dialog>
       <Dialog open={showCourseCompleteDialog}>
-        <DialogContent showOverlay={false} className="sm:w-[425px]">
+        <DialogContent showOverlay={false} className="sm:w-[425px] p-4">
           <DialogHeader>
             <DialogTitle>Congratulations!</DialogTitle>
             <DialogDescription className="flex flex-col gap-3">
               <Label>You have completed the course</Label>
-              <div className="flex flex-row gap-3">
+              <div className="flex flex-row gap-1">
                 <Button onClick={() => navigate("/student-courses")}>
                   My Courses Page
                 </Button>
                 <Button onClick={handleRewatchCourse}>Rewatch Course</Button>
+                <Button onClick={handleGetCertificate}>
+                          Certificate
+                        </Button>
               </div>
             </DialogDescription>
           </DialogHeader>

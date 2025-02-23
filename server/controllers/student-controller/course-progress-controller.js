@@ -1,6 +1,7 @@
 const CourseProgress = require("../../models/CourseProgress");
 const Course = require("../../models/Course");
 const StudentCourses = require("../../models/StudentCourses");
+const { generateCertificate } = require("../../helpers/certificateGenerator");
 
 //mark current lecture as viewed
 const markCurrentLectureAsViewed = async (req, res) => {
@@ -180,8 +181,32 @@ const resetCurrentCourseProgress = async (req, res) => {
   }
 };
 
+const getCertificate = async (req, res) => {
+  try {
+    const  data  = req.body;
+    console.log("params",req.body);
+    
+    console.log(data);
+
+    const certificate = await generateCertificate(data);
+    console.log(certificate);
+    
+    res.setHeader('Content-Disposition', 'attachment; filename=certificate.pdf');
+    res.setHeader('Content-Type', 'application/pdf');
+    res.send(certificate);
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Some error occured!",
+    });
+  }
+};
+
 module.exports = {
   markCurrentLectureAsViewed,
   getCurrentCourseProgress,
   resetCurrentCourseProgress,
+  getCertificate,
 };
