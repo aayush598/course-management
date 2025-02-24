@@ -7,9 +7,6 @@ const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-
   const toggleChatbot = () => {
     setIsOpen(!isOpen);
   };
@@ -23,18 +20,16 @@ const Chatbot = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(API_URL, {
+      const response = await fetch("http://localhost:5000/chatbot/ask", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: input }] }],
-        }),
+        body: JSON.stringify({ message: input }),
       });
 
       const data = await response.json();
-      const botResponseText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I didn't understand that.";
+      const botResponseText = data.success ? data.response : "Error: Unable to fetch response.";
 
       const botResponse = { text: botResponseText, sender: "bot" };
       setMessages((prevMessages) => [...prevMessages, botResponse]);
