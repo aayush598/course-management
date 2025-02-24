@@ -13,11 +13,13 @@ import StudentViewCourseDetailsPage from "./pages/student/course-details";
 import PaypalPaymentReturnPage from "./pages/student/payment-return";
 import StudentCoursesPage from "./pages/student/student-courses";
 import StudentViewCourseProgressPage from "./pages/student/course-progress";
+import Chatbot from "./components/chatbot/Chatbot"; 
 
 function App() {
   const { auth } = useContext(AuthContext);
 
   return (
+    <>
     <Routes>
       <Route
         path="/auth"
@@ -85,6 +87,8 @@ function App() {
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
+    <Chatbot /> {/* Add Chatbot Here */}
+    </>
   );
 }
 
