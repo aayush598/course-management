@@ -93,9 +93,6 @@ const InstructorChat = ({ instructorId }) => {
 
   return (
     <div className="h-[calc(100vh-2rem)]">
-      <div className="flex justify-between items-center mb-8">
-        <h2 className="text-3xl font-bold">Chat</h2>
-      </div>
       <div className="bg-white rounded-lg shadow h-[calc(100%-6rem)] flex">
         {/* Contacts List */}
         <div className="w-80 border-r">

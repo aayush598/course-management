@@ -11,8 +11,7 @@ import { useContext, useEffect, useState } from "react";
 
 function InstructorDashboardpage() {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const { auth } = useContext(AuthContext);
-  console.log(auth, "auth");
+  
   
   const { auth, resetCredentials } = useContext(AuthContext);
   const { instructorCoursesList, setInstructorCoursesList } =
@@ -71,6 +70,9 @@ console.log(instructorCoursesList, "instructorCoursesList");
     alert("Referral code copied!");
   }
 
+  console.log(auth?.user, "auth.user");
+  
+
   const menuItems = [
     {
       icon: BarChart,
@@ -124,12 +126,12 @@ console.log(instructorCoursesList, "instructorCoursesList");
       </aside>
       <main className="flex-1 p-8 overflow-y-auto">
         <div className="max-w-7xl mx-auto">
-          {activeTab == "chat" ? null : (
-            <h1 className="text-3xl font-bold mb-8">Dashboard </h1>
+          { (
+            <h1 className="text-3xl font-bold mb-8">{activeTab === "chat" ? "Chat" : "Dashboard"} </h1>
           )}
 
           {/* Referral Section */}
-          <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+          { activeTab === "dashboard" && <> <div className="bg-white p-6 rounded-lg shadow-md mb-6">
             <h2 className="text-xl font-semibold">Your Referral Code</h2>
             <div className="flex items-center space-x-2 mt-2">
               <span className="px-3 py-1 bg-gray-200 rounded">{auth.user.referralCode}</span>
@@ -154,6 +156,8 @@ console.log(instructorCoursesList, "instructorCoursesList");
               <p className="text-gray-500 mt-3">No referrals used yet.</p>
             )}
           </div>
+          </>
+          }
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
             {menuItems.map((menuItem) => (
