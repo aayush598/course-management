@@ -14,10 +14,19 @@ export default function AuthProvider({ children }) {
   });
   const [loading, setLoading] = useState(true);
 
-  async function handleRegisterUser(event) {
-    event.preventDefault();
-    const data = await registerService(signUpFormData);
+  async function handleRegisterUser(userData) {
+    try {
+      const data = await registerService(userData);
+      if (data.success) {
+        console.log("User registered successfully!");
+      } else {
+        console.log("Registration failed:", data.message);
+      }
+    } catch (error) {
+      console.log("Error registering user:", error);
+    }
   }
+  
 
   async function handleLoginUser(event) {
     event.preventDefault();

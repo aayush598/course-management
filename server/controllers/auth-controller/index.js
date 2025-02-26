@@ -1,36 +1,73 @@
 const User = require("../../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 
 const registerUser = async (req, res) => {
-  const { userName, userEmail, password, role } = req.body;
+  try {
+    const { userName, userEmail, password, role, referralCode } = req.body;
 
-  const existingUser = await User.findOne({
-    $or: [{ userEmail }, { userName }],
-  });
+    // Check if user already exists
+    const existingUser = await User.findOne({
+      $or: [{ userEmail }, { userName }],
+    });
 
-  if (existingUser) {
-    return res.status(400).json({
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "User name or user email already exists",
+      });
+    }
+
+    // Hash password
+    const hashPassword = await bcrypt.hash(password, 10);
+
+    // Generate a unique referral code for the new user
+    const newReferralCode = crypto.randomBytes(4).toString("hex");
+
+    const newUser = new User({
+      userName,
+      userEmail,
+      role,
+      password: hashPassword,
+      referralCode: newReferralCode,
+      referredBy: referralCode || null, // Store referral code if provided
+    });
+
+    // Check if the referral code exists and update the referrer's data
+    if (referralCode) {
+      const referrer = await User.findOne({ referralCode });
+
+      if (referrer) {
+        referrer.referralCount += 1;
+        referrer.referrals.push(newUser._id);
+        await referrer.save();
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid referral code",
+        });
+      }
+    }
+
+    // Save the new user
+    await newUser.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "User registered successfully!",
+      referralCode: newUser.referralCode, // Send the generated referral code in response
+    });
+
+  } catch (error) {
+    return res.status(500).json({
       success: false,
-      message: "User name or user email already exists",
+      message: "Error registering user",
+      error: error.message,
     });
   }
-
-  const hashPassword = await bcrypt.hash(password, 10);
-  const newUser = new User({
-    userName,
-    userEmail,
-    role,
-    password: hashPassword,
-  });
-
-  await newUser.save();
-
-  return res.status(201).json({
-    success: true,
-    message: "User registered successfully!",
-  });
 };
+
 
 const loginUser = async (req, res) => {
   const { userEmail, password } = req.body;
@@ -50,6 +87,7 @@ const loginUser = async (req, res) => {
       userName: checkUser.userName,
       userEmail: checkUser.userEmail,
       role: checkUser.role,
+      referralCode: checkUser.referralCode, 
     },
     "JWT_SECRET",
     { expiresIn: "120m" }
@@ -65,6 +103,7 @@ const loginUser = async (req, res) => {
         userName: checkUser.userName,
         userEmail: checkUser.userEmail,
         role: checkUser.role,
+        referralCode: checkUser.referralCode,
       },
     },
   });

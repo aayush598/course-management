@@ -24,6 +24,9 @@ function AuthPage() {
     handleLoginUser,
   } = useContext(AuthContext);
 
+  // State to store the referral code
+  const [referralCode, setReferralCode] = useState("");
+
   function handleTabChange(value) {
     setActiveTab(value);
   }
@@ -45,7 +48,15 @@ function AuthPage() {
     );
   }
 
-  console.log(signInFormData);
+  function handleReferralCodeChange(e) {
+    setReferralCode(e.target.value);
+  }
+
+  function handleRegister(e) {
+    e.preventDefault();
+    handleRegisterUser({ ...signUpFormData, referralCode });
+  }
+  
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -101,8 +112,21 @@ function AuthPage() {
                   formData={signUpFormData}
                   setFormData={setSignUpFormData}
                   isButtonDisabled={!checkIfSignUpFormIsValid()}
-                  handleSubmit={handleRegisterUser}
+                  handleSubmit={handleRegister}
                 />
+                {/* Referral Code Input Field */}
+                <div className="space-y-2 mt-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Referral Code (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={referralCode}
+                    onChange={handleReferralCodeChange}
+                    className="w-full p-2 border rounded-md"
+                    placeholder="Enter referral code"
+                  />
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

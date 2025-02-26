@@ -11,6 +11,7 @@ const studentCoursesRoutes = require("./routes/student-routes/student-courses-ro
 const studentCourseProgressRoutes = require("./routes/student-routes/course-progress-routes");
 const quizRoutes = require("./routes/student-routes/quiz-routes");
 const chatbotRoute = require("./routes/chatbotRoute");
+const referralRoutes = require("./routes/instructor-routes/referral-routes");
 const chatRoute = require("./routes/message-routes/message-routes");
 const {
   sendMessage,
@@ -57,6 +58,7 @@ app.use("/student/courses-bought", studentCoursesRoutes);
 app.use("/student/course-progress", studentCourseProgressRoutes);
 app.use("/quiz", quizRoutes);
 app.use("/chatbot", chatbotRoute);
+app.use("/instructor/referrals", referralRoutes);
 app.use("/chat", chatRoute);
 
 app.use((err, req, res, next) => {
