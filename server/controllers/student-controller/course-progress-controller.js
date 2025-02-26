@@ -184,12 +184,12 @@ const resetCurrentCourseProgress = async (req, res) => {
 const getCertificate = async (req, res) => {
   try {
     const  data  = req.body;
-    console.log("params",req.body);
+    //console.log("params",req.body);
     
-    console.log(data);
+    //console.log(data);
 
     const certificate = await generateCertificate(data);
-    console.log(certificate);
+    //console.log(certificate);
     
     res.setHeader('Content-Disposition', 'attachment; filename=certificate.pdf');
     res.setHeader('Content-Type', 'application/pdf');

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
-function Quiz({ topic }) {
+function Quiz({ topic , isDarkMode }) {
   const [quiz, setQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
   const [score, setScore] = useState(null);
@@ -49,22 +49,29 @@ function Quiz({ topic }) {
     }
   };
 
-  return (
-    <div className="flex flex-col items-center justify-center p-6 bg-[#1c1d1f] text-white">
-      <div className="bg-gray-800 shadow-lg rounded-lg p-6 max-w-xl w-full">
-        <h1 className="text-3xl font-bold text-center mb-4 text-indigo-400">
-          Quiz on: {topic || "Loading..."}
-        </h1>
+  // const [isDarkMode, setIsDarkMode] = useState(isDarkMode);
+  
 
-        {loading && <p className="text-center text-gray-400">Generating quiz...</p>}
+
+  return (
+    <div className={`flex flex-col items-center justify-center p-6 ${isDarkMode ? 'bg-[#1c1d1f] text-white' : 'bg-gray-100 text-gray-800'}`}>
+      <div className={`shadow-lg rounded-lg p-6 max-w-xl w-full ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        <div className="flex justify-between items-center mb-4">
+          <h1 className={`text-3xl font-bold ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`}>
+            Quiz on: {topic || "Loading..."}
+          </h1>
+          
+        </div>
+
+        {loading && <p className={`text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Generating quiz...</p>}
 
         {quiz && (
           <div className="mt-6">
             {quiz.questions.map((q, index) => (
-              <div key={index} className="p-4 border-b border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-300">{q.question}</h3>
+              <div key={index} className={`p-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                <h3 className={`text-lg font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{q.question}</h3>
                 {q.options.map((option, i) => (
-                  <label key={i} className="block p-2 cursor-pointer hover:bg-gray-700 rounded-lg">
+                  <label key={i} className={`block p-2 cursor-pointer rounded-lg ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-200'}`}>
                     <input
                       type="radio"
                       name={q.question}
@@ -80,14 +87,14 @@ function Quiz({ topic }) {
 
             <button
               onClick={submitQuiz}
-              className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition w-full"
+              className={`mt-4 px-4 py-2 rounded-lg transition w-full ${isDarkMode ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`}
             >
               Submit Quiz
             </button>
           </div>
         )}
 
-        {score && <h2 className="mt-4 text-lg font-semibold text-center text-green-400">{score}</h2>}
+        {score && <h2 className={`mt-4 text-lg font-semibold text-center ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>{score}</h2>}
       </div>
     </div>
   );

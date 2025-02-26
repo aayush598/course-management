@@ -10,7 +10,7 @@ const getAllStudentViewCourses = async (req, res) => {
       sortBy = "price-lowtohigh",
     } = req.query;
 
-    console.log(req.query, "req.query");
+    //console.log(req.query, "req.query");
 
     let filters = {};
     if (category.length) {

@@ -187,4 +187,12 @@ export const getCertificateService = async (data) => {
   }
 };
 
+export async function getContactListService() {
+  const { data } = await axiosInstance.get(`/chat/get/contact-list`);
+  return data;
+}
 
+export async function getMessageService(senderId) {
+  const { data } = await axiosInstance.get(`/chat/get/message/${senderId}`);
+  return data;
+}

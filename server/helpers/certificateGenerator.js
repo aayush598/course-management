@@ -19,7 +19,7 @@ const filePath = path.resolve(__dirname, "../public/certificate.docx");
 
 const generateCertificate = async (data) => {
 
-  console.log(data);
+  //console.log(data);
   
 
   let readStream;
@@ -48,7 +48,7 @@ const generateCertificate = async (data) => {
     // Prepare JSON data for document merge
     const jsonDataForMerge = { name : data.name, course : data.course, date : data.date };
 
-    console.log(jsonDataForMerge);
+    //console.log(jsonDataForMerge);
     
     const params = new DocumentMergeParams({
       jsonDataForMerge,

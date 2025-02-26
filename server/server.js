@@ -12,8 +12,23 @@ const studentCourseProgressRoutes = require("./routes/student-routes/course-prog
 const quizRoutes = require("./routes/student-routes/quiz-routes");
 const chatbotRoute = require("./routes/chatbotRoute");
 const referralRoutes = require("./routes/instructor-routes/referral-routes");
+const chatRoute = require("./routes/message-routes/message-routes");
+const {
+  sendMessage,
+} = require("./controllers/message-controller/message-controller");
+const { Server } = require("socket.io");
+const http = require("http");
 
 const app = express();
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "*", // Allow requests from any origin (change if needed)
+    methods: ["GET", "POST"],
+  },
+});
+
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
 
@@ -41,9 +56,10 @@ app.use("/student/course", studentViewCourseRoutes);
 app.use("/student/order", studentViewOrderRoutes);
 app.use("/student/courses-bought", studentCoursesRoutes);
 app.use("/student/course-progress", studentCourseProgressRoutes);
-app.use("/quiz", quizRoutes); 
+app.use("/quiz", quizRoutes);
 app.use("/chatbot", chatbotRoute);
 app.use("/instructor/referrals", referralRoutes);
+app.use("/chat", chatRoute);
 
 app.use((err, req, res, next) => {
   console.log(err.stack);
@@ -52,7 +68,46 @@ app.use((err, req, res, next) => {
     message: "Something went wrong",
   });
 });
+let users = {};
+io.on("connection", (socket) => {
+  console.log("a user connected");
+  socket.on("join", (data) => {
+    users[data.senderId] = socket.id;
+    console.log(users);
+    console.log(`user with id ${data.senderId} joined \n\n\n\n`);
+    
+  });
 
-app.listen(PORT, () => {
+  socket.on("send-message", (data) => {
+    console.log(users);
+    
+    console.log(`sending message ${data.message} to ${data.receiverId}`);
+    const receiverSocketId = users[data.receiverId];
+
+    if(data.senderId === data.receiverId){
+      return;
+    }
+
+    if (!receiverSocketId) {
+      console.log("receiver not online");
+      
+      console.log("message saved to database");
+      
+    } else {
+      console.log("receiver online");
+      io.to(receiverSocketId).emit("receive-message", data);
+    }
+    sendMessage({senderId : data.senderId, receiverId:  data.receiverId,message: data.message});
+  });
+
+  socket.on("disconnect", () => {
+    console.log("a user disconnected");
+    users = Object.fromEntries(
+      Object.entries(users).filter(([key, value]) => value !== socket.id)
+    );
+  });
+});
+
+server.listen(PORT, () => {
   console.log(`Server is now running on port ${PORT}`);
 });
