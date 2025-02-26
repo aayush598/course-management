@@ -20,18 +20,23 @@ import {
   markLectureAsViewedService,
   resetCourseProgressService,
 } from "@/services";
-import { Check, ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import Confetti from "react-confetti";
 import { useNavigate, useParams } from "react-router-dom";
 import Quiz from "./quiz";
+import Chat from "@/components/chat/Chat";
 
 function StudentViewCourseProgressPage() {
+
+  
   const navigate = useNavigate();
   const [certificate, setCertificate] = useState(null);
   const { auth } = useContext(AuthContext);
   const { studentCurrentCourseProgress, setStudentCurrentCourseProgress } =
     useContext(StudentContext);
+
+    
   const [lockCourse, setLockCourse] = useState(false);
   const [currentLecture, setCurrentLecture] = useState(null);
   const [showCourseCompleteDialog, setShowCourseCompleteDialog] =
@@ -59,16 +64,17 @@ function StudentViewCourseProgressPage() {
           return;
         }
 
-        // console.log("StudentContext",StudentContext);
-        console.log("course" , studentCurrentCourseProgress);
-        console.log("auth data" ,auth);
-        
+        // Proper logging for production can be added here if needed
+        useEffect(() => {
+          console.log("studentCurrentCourseProgress", studentCurrentCourseProgress);
+          
+        },[studentCurrentCourseProgress])
         
 
         if (response?.data?.progress?.length === 0) {
           setCurrentLecture(response?.data?.courseDetails?.curriculum[0]);
         } else {
-          console.log("logging here");
+          // Proper logging for production can be added here if needed
           const lastIndexOfViewedAsTrue = response?.data?.progress.reduceRight(
             (acc, obj, index) => {
               return acc === -1 && obj.viewed ? index : acc;
@@ -179,23 +185,29 @@ function StudentViewCourseProgressPage() {
   //   }
   // } , [certificate]);
 
-  console.log(currentLecture, "currentLecture");
+  // console.log(studentCurrentCourseProgress.courseDetails.instructorId, "studentCurrentCourseProgress");
+  
+
+  // Proper logging for production can be added here if needed
 
   return (
-    <div className="flex flex-col h-screen bg-[#1c1d1f] text-white">
+    <div className="`min-h-screen ${darkMode ? 'dark' : ''}`">
+                  <div className="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {showConfetti && <Confetti />}
-      <div className="flex items-center justify-between p-4 bg-[#1c1d1f] border-b border-gray-700">
-        <div className="flex items-center space-x-4">
+      <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+                    <div className="container mx-auto px-4 py-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
           <Button
             onClick={() => navigate("/student-courses")}
-            className="text-black"
+            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
             variant="ghost"
             size="sm"
           >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Back to My Courses Page
+             <ArrowLeft className="w-6 h-6" />
+           
           </Button>
-          <h1 className="text-lg font-bold hidden md:block">
+          <h1 className="text-xl font-semibold">
             {studentCurrentCourseProgress?.courseDetails?.title}
           </h1>
         </div>
@@ -207,13 +219,14 @@ function StudentViewCourseProgressPage() {
           )}
         </Button>
       </div>
-      <div className="flex flex-1 overflow-hidden">
+      </div>
+      </header>
+      <div className="flex">
+      <div className={` max-sm: flex-1  transition-all duration-300`}>
         <div
-          className={`flex-1 ${
-            isSideBarOpen ? "mr-[400px]" : ""
-          } transition-all duration-300`}
+          className="container mx-auto px-4 py-8"
         >
-          <ScrollArea className="h-full">
+          <div className="space-y-8">
             <VideoPlayer
               width="100%"
               height="500px"
@@ -221,19 +234,18 @@ function StudentViewCourseProgressPage() {
               onProgressUpdate={setCurrentLecture}
               progressData={currentLecture}
             />
-            <div className="p-6 bg-[#1c1d1f]">
-              <h2 className="text-2xl font-bold mb-2">{currentLecture?.title}</h2>
+            <div className="">
+              <h2 className="">{currentLecture?.title}</h2>
             </div>
             <div>
               <Quiz topic={currentLecture?.title} />
               {currentLecture?.videoUrl}
             </div>
-          </ScrollArea>
+          </div>
+        </div>
         </div>
         <div
-          className={`fixed top-[64px] right-0 bottom-0 w-[400px] bg-[#1c1d1f] border-l border-gray-700 transition-all duration-300 ${
-            isSideBarOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+          className=""
         >
           <Tabs defaultValue="content" className="h-full flex flex-col">
             <TabsList className="grid bg-[#1c1d1f] w-full grid-cols-3 p-0 h-14">
@@ -254,6 +266,12 @@ function StudentViewCourseProgressPage() {
                 className=" text-black rounded-none h-full"
               >
                 Certificate
+              </TabsTrigger>
+              <TabsTrigger
+                value="Chat"
+                className=" text-black rounded-none h-full"
+              >
+                Chat
               </TabsTrigger>
             </TabsList>
             <TabsContent value="content">
@@ -322,9 +340,14 @@ function StudentViewCourseProgressPage() {
                 }
             
             </TabsContent>
+            <TabsContent value="Chat" className="flex-1 overflow-hidden">
+              { studentCurrentCourseProgress?.courseDetails?.instructorId && <Chat senderId = {auth?.user?._id} receiverId = { studentCurrentCourseProgress?.courseDetails?.instructorId} />}
+            </TabsContent>
           </Tabs>
         </div>
       </div>
+      </div>
+      
       <Dialog open={lockCourse}>
         <DialogContent className="sm:w-[425px]">
           <DialogHeader>

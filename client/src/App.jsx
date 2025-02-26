@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import AuthPage from "./pages/auth";
 import RouteGuard from "./components/route-guard";
-import { useContext } from "react";
+import { useContext, useEffect, useMemo } from "react";
 import { AuthContext } from "./context/auth-context";
 import InstructorDashboardpage from "./pages/instructor";
 import StudentViewCommonLayout from "./components/student-view/common-layout";
@@ -14,9 +14,20 @@ import PaypalPaymentReturnPage from "./pages/student/payment-return";
 import StudentCoursesPage from "./pages/student/student-courses";
 import StudentViewCourseProgressPage from "./pages/student/course-progress";
 import Chatbot from "./components/chatbot/Chatbot"; 
+import { io } from "socket.io-client";
+import {SocketContext} from "./context/socket-context/SocketContext";
+import ViewCourse from "./pages/student/view-course/ViewCourse";
 
 function App() {
   const { auth } = useContext(AuthContext);
+  const { setSocket } = useContext(SocketContext);
+  const socket = useMemo(()=> io("http://localhost:5000"), []);
+  useEffect(() => {
+    setSocket(socket);
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   return (
     <>
@@ -80,10 +91,11 @@ function App() {
         />
         <Route path="payment-return" element={<PaypalPaymentReturnPage />} />
         <Route path="student-courses" element={<StudentCoursesPage />} />
-        <Route
+        {/* <Route
           path="course-progress/:id"
           element={<StudentViewCourseProgressPage />}
-        />
+        /> */}
+        <Route path="course-progress/:id" element={<ViewCourse />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
