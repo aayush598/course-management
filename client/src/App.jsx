@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import AuthPage from "./pages/auth";
 import RouteGuard from "./components/route-guard";
 import { useContext, useEffect, useMemo } from "react";
@@ -12,11 +12,14 @@ import StudentViewCoursesPage from "./pages/student/courses";
 import StudentViewCourseDetailsPage from "./pages/student/course-details";
 import PaypalPaymentReturnPage from "./pages/student/payment-return";
 import StudentCoursesPage from "./pages/student/student-courses";
-import StudentViewCourseProgressPage from "./pages/student/course-progress";
+// import StudentViewCourseProgressPage from "./pages/student/course-progress";
 import Chatbot from "./components/chatbot/Chatbot"; 
 import { io } from "socket.io-client";
 import {SocketContext} from "./context/socket-context/SocketContext";
 import ViewCourse from "./pages/student/view-course/ViewCourse";
+import Forum from "./pages/Forum";
+import ThreadDetails from "./pages/ThreadDetails";
+
 
 function App() {
   const { auth } = useContext(AuthContext);
@@ -96,6 +99,8 @@ function App() {
           element={<StudentViewCourseProgressPage />}
         /> */}
         <Route path="course-progress/:id" element={<ViewCourse />} />
+        <Route path="forum" element={<Forum />} />
+        <Route path="/forum/thread/:threadId" element={<ThreadDetails />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
