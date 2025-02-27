@@ -1,4 +1,4 @@
-import { GraduationCap, TvMinimalPlay } from "lucide-react";
+import { GraduationCap, TvMinimalPlay, MessageCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../ui/button";
 import { useContext } from "react";
@@ -33,6 +33,13 @@ function StudentViewCommonHeader() {
             className="text-[14px] md:text-[16px] font-medium"
           >
             Explore Courses
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/forum")} // ✅ Navigate to Forum page
+            className="text-[14px] md:text-[16px] font-medium flex items-center"
+          >
+            <MessageCircle className="h-5 w-5 mr-2" /> Forum {/* ✅ Add Forum Icon */}
           </Button>
         </div>
       </div>
