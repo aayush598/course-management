@@ -33,23 +33,19 @@ router.get("/threads/:threadId", async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 });
-
 router.post("/threads/:threadId/replies", async (req, res) => {
     try {
-        const { content, author } = req.body; // Extract values safely
+        const { content, author } = req.body;
 
-        if (!content || !author) {
+        if (!content?.trim() || !author?.trim()) {
             return res.status(400).json({ message: "Reply and author name are required" });
-        }
-
-        if (typeof content !== "string" || typeof author !== "string") {
-            return res.status(400).json({ message: "Invalid input type" });
         }
 
         const reply = new Reply({
             content: content.trim(),
             author: author.trim(),
-            threadId: req.params.threadId, // Ensure threadId is stored as a string
+            threadId: req.params.threadId,
+            createdAt: new Date() // ✅ Ensure the timestamp is stored
         });
 
         await reply.save();
@@ -65,20 +61,24 @@ router.post("/threads/:threadId/replies", async (req, res) => {
     }
 });
 
-
-
-// Create a new thread
 router.post("/threads", async (req, res) => {
     try {
         if (!req.body.title || !req.body.content || !req.body.author) {
             return res.status(400).json({ message: "All fields are required" });
         }
-        const thread = new ForumThread({ ...req.body, threadId: new Date().getTime().toString() });
+
+        const thread = new ForumThread({ 
+            ...req.body, 
+            threadId: new Date().getTime().toString(),
+            createdAt: new Date()
+        });
+
         await thread.save();
         res.status(201).json(thread);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
+
 
 module.exports = router;
