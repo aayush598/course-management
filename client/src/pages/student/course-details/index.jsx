@@ -17,6 +17,7 @@ import {
   createPaymentService,
   fetchStudentViewCourseDetailsService,
   getFreeCourseService,
+  recordUserInterectionService,
 } from "@/services";
 import { CheckCircle, Globe, Lock, PlayCircle } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
@@ -91,25 +92,25 @@ function StudentViewCourseDetailsPage() {
       courseImage: studentViewCourseDetails?.image,
       courseTitle: studentViewCourseDetails?.title,
       courseId: studentViewCourseDetails?._id,
-      coursePricing: studentViewCourseDetails?.pricing,
+      coursePricing: studentViewCourseDetails?.pricing ,
+      
     };
 
     console.log(paymentPayload, "paymentPayload");
 
-
-    // const response = await createPaymentService(paymentPayload);
+    const response = await createPaymentService(paymentPayload);
     // const response = {success : true}
-    // if (response.success) {
-    //   sessionStorage.setItem(
-    //     "currentOrderId",
-    //     JSON.stringify(response?.data?.orderId)
-    //   );
-    //   setApprovalUrl(response?.data?.approveUrl);
-    // }
-    const response = await getFreeCourseService(paymentPayload);
+    if (response.success) {
+      sessionStorage.setItem(
+        "currentOrderId",
+        JSON.stringify(response?.data?.orderId)
+      );
+      recordInterectio({userId :auth?.user?._id , courseId : currentCourseDetailsId , interactionType : "enroll"});
+      setApprovalUrl(response?.data?.approveUrl);
+    }
+    // const response = await getFreeCourseService(paymentPayload);
     if (response?.success) {
-      console.log( "response.data success" ,response?.data);
-      
+      console.log("response.data success", response?.data);
     }
   }
 
@@ -131,6 +132,23 @@ function StudentViewCourseDetailsPage() {
         setCurrentCourseDetailsId(null),
         setCoursePurchaseId(null);
   }, [location.pathname]);
+
+  const recordInterectio = async ({userId , courseId , interactionType}) => {
+   const response = await recordUserInterectionService(
+      {
+        userId ,
+        courseId ,
+        interactionType ,
+      }
+    );
+    return response?.success;
+  };
+
+  useEffect(() => {
+    
+    recordInterectio({userId :auth?.user?._id , courseId : currentCourseDetailsId , interactionType : "view"});
+    
+  }, []);
 
   if (loadingState) return <Skeleton />;
 
