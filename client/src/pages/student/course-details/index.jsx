@@ -92,8 +92,8 @@ function StudentViewCourseDetailsPage() {
       courseImage: studentViewCourseDetails?.image,
       courseTitle: studentViewCourseDetails?.title,
       courseId: studentViewCourseDetails?._id,
-      // coursePricing: studentViewCourseDetails?.pricing ,
-      coursePricing: 0.1
+      coursePricing: studentViewCourseDetails?.pricing ,
+      
     };
 
     console.log(paymentPayload, "paymentPayload");
