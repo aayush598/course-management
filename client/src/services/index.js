@@ -96,6 +96,32 @@ export async function fetchStudentViewCourseDetailsService(courseId) {
   return data;
 }
 
+export async function fetchPopularCoursesService() {
+  const { data } = await axiosInstance.get(`/student/course/get/popular-courses` , { 
+    limit : 5
+  });
+
+  return data;
+}
+
+export async function fetchSimilarCoursesService(courseId , limit) {
+  const { data } = await axiosInstance.get(`/student/course/get/similiar-cources${courseId}/${limit}`);
+
+  return data;
+}
+
+export async function fetchExplorePageRecommendationsService(userId) {
+  const { data } = await axiosInstance.get(`/student/course/get/recommendations/${userId}`);
+
+  return data;
+}
+
+export async function recordUserInterectionService(interectioData) {
+  const { data } = await axiosInstance.post(`/student/course/record-interection`, interectioData );
+
+  return data;
+}
+
 export async function checkCoursePurchaseInfoService(courseId, studentId) {
   const { data } = await axiosInstance.get(
     `/student/course/purchase-info/${courseId}/${studentId}`

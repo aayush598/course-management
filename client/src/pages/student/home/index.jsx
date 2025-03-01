@@ -1,10 +1,12 @@
 import { courseCategories } from "@/config";
 import banner from "../../../../public/banner-img.png";
 import { Button } from "@/components/ui/button";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { StudentContext } from "@/context/student-context";
 import {
   checkCoursePurchaseInfoService,
+  fetchExplorePageRecommendationsService,
+  fetchPopularCoursesService,
   fetchStudentViewCourseListService,
 } from "@/services";
 import { AuthContext } from "@/context/auth-context";
@@ -13,6 +15,8 @@ import { useNavigate } from "react-router-dom";
 function StudentHomePage() {
   const { studentViewCoursesList, setStudentViewCoursesList } =
     useContext(StudentContext);
+  const [recommendedCourses, setRecommendedCourses] = useState([]);
+  const [popularCourses, setPopularCourses] = useState([]);
   const { auth } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -33,6 +37,20 @@ function StudentHomePage() {
     if (response?.success) setStudentViewCoursesList(response?.data);
   }
 
+  async function fetchPopularCourses() {
+    const response = await fetchPopularCoursesService();
+    if (response?.success) setPopularCourses(response?.data);
+    console.log("popular Courses",response);
+  }
+
+  async function fetchRecommendedCourses() {
+    if (!auth?.user?._id) return;
+    const response = await fetchExplorePageRecommendationsService(auth?.user?._id);
+    if (response?.success) setRecommendedCourses(response?.data);
+    console.log("recommended ",response);
+    
+  }
+
   async function handleCourseNavigate(getCurrentCourseId) {
     const response = await checkCoursePurchaseInfoService(
       getCurrentCourseId,
@@ -50,6 +68,10 @@ function StudentHomePage() {
 
   useEffect(() => {
     fetchAllStudentViewCourses();
+    fetchPopularCourses();
+    fetchRecommendedCourses();
+    console.log("recommended Courses",recommendedCourses.popular);
+    
   }, []);
 
   return (
@@ -86,7 +108,7 @@ function StudentHomePage() {
         </div>
       </section>
       <section className="py-12 px-4 lg:px-8">
-        <h2 className="text-2xl font-bold mb-6">Featured COourses</h2>
+        <h2 className="text-2xl font-bold mb-6">Featured Courses</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {studentViewCoursesList && studentViewCoursesList.length > 0 ? (
             studentViewCoursesList.map((courseItem) => (
@@ -115,6 +137,65 @@ function StudentHomePage() {
             <h1>No Courses Found</h1>
           )}
         </div>
+        <h2 className="text-2xl font-bold mb-6">Popular Courses</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {recommendedCourses && recommendedCourses?.popular?.length > 0 ? (
+            recommendedCourses?.popular?.map((courseItem) => (
+              <div
+                onClick={() => handleCourseNavigate(courseItem?._id)}
+                className="border rounded-lg overflow-hidden shadow cursor-pointer"
+              >
+                <img
+                  src={courseItem?.image}
+                  width={300}
+                  height={150}
+                  className="w-full h-40 object-cover"
+                />
+                <div className="p-4">
+                  <h3 className="font-bold mb-2">{courseItem?.title}</h3>
+                  <p className="text-sm text-gray-700 mb-2">
+                    {courseItem?.instructorName}
+                  </p>
+                  <p className="font-bold text-[16px]">
+                    ${courseItem?.pricing}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <h1>No Courses Found</h1>
+          )}
+        </div>
+         <h2 className="text-2xl font-bold mb-6">Recommended For You</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {recommendedCourses && recommendedCourses?.recommended?.length > 0 ? (
+            recommendedCourses?.recommended?.map((courseItem) => (
+              <div
+                onClick={() => handleCourseNavigate(courseItem?._id)}
+                className="border rounded-lg overflow-hidden shadow cursor-pointer"
+              >
+                <img
+                  src={courseItem?.image}
+                  width={300}
+                  height={150}
+                  className="w-full h-40 object-cover"
+                />
+                <div className="p-4">
+                  <h3 className="font-bold mb-2">{courseItem?.title}</h3>
+                  <p className="text-sm text-gray-700 mb-2">
+                    {courseItem?.instructorName}
+                  </p>
+                  <p className="font-bold text-[16px]">
+                    ${courseItem?.pricing}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <h1>No Courses Found</h1>
+          )}
+        </div>
+        
       </section>
     </div>
   );

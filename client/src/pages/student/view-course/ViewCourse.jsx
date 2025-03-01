@@ -20,10 +20,12 @@ import {
   getCertificateService,
   getCurrentCourseProgressService,
   markLectureAsViewedService,
+  recordUserInterectionService,
   resetCourseProgressService,
 } from "@/services";
 import { AuthContext } from "@/context/auth-context";
 import { StudentContext } from "@/context/student-context";
+import Confetti from "react-confetti";
 
 const sampleCourse = {
   id: "1",
@@ -95,6 +97,11 @@ function ViewCourse() {
         if (response?.data?.completed) {
           setCurrentLecture(response?.data?.courseDetails?.curriculum[0]);
           setShowCourseCompleteDialog(true);
+          recordInterection({
+            userId: auth?.user?._id,
+            courseId: id,
+            interactionType: "complete",
+          });
           setShowConfetti(true);
 
           return;
@@ -215,9 +222,23 @@ function ViewCourse() {
         setCurrentLecture(allLectures[currentIndex + 1]);
       } else {
         setShowCourseCompleteDialog(true);
+        recordInterection({
+          userId: auth?.user?._id,
+          courseId: id,
+          interactionType: "complete",
+        });
         setShowConfetti(true);
       }
     }
+  };
+
+  const recordInterection = async ({ userId, courseId, interactionType }) => {
+    const response = await recordUserInterectionService({
+      userId,
+      courseId,
+      interactionType,
+    });
+    return response?.success;
   };
 
   //   console.log(studentCurrentCourseProgress?.progress.length);
@@ -232,11 +253,14 @@ function ViewCourse() {
     <div className={`min-h-screen ${darkMode ? "dark" : ""}`}>
       <div className="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         {/* Header */}
+        {showConfetti && <Confetti />}
         <header className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <button className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                <button
+                onClick={() => navigate("/student-courses")}
+                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
                   <ArrowLeft className="w-6 h-6" />
                 </button>
                 <h1 className="text-xl font-semibold">
@@ -324,10 +348,7 @@ function ViewCourse() {
                       />
                     ) : (
                       <div className="w-12 h-12 rounded-full bg-gray-600 text-white flex items-center justify-center">
-                        {
-                          studentCurrentCourseProgress?.courseDetails
-                            ?.instructorName[0].toUpperCase()
-                        }
+                        {studentCurrentCourseProgress?.courseDetails?.instructorName[0].toUpperCase()}
                       </div>
                     )}
                     <div>
@@ -449,10 +470,33 @@ function ViewCourse() {
                 Get Certificate
               </button>
               <button
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                onClick={handleRewatchCourse}
+              >
+                Rewatch Course
+              </button>
+              <button
                 onClick={() => setShowCourseCompleteDialog(false)}
                 className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {lockCourse && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg max-w-md">
+            <h2 className="text-2xl font-bold mb-4">Course Locked</h2>
+            <p className="mb-6">Please purchase the course to unlock.</p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => navigate("/student/home")}
+                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+              >
+                Go to Home
               </button>
             </div>
           </div>
