@@ -13,6 +13,7 @@ const quizRoutes = require("./routes/student-routes/quiz-routes");
 const chatbotRoute = require("./routes/chatbotRoute");
 const referralRoutes = require("./routes/instructor-routes/referral-routes");
 const chatRoute = require("./routes/message-routes/message-routes");
+const forumRoutes = require("./routes/forum-routes");
 const {
   sendMessage,
 } = require("./controllers/message-controller/message-controller");
@@ -60,6 +61,7 @@ app.use("/quiz", quizRoutes);
 app.use("/chatbot", chatbotRoute);
 app.use("/instructor/referrals", referralRoutes);
 app.use("/chat", chatRoute);
+app.use("/forum", forumRoutes);
 
 app.use((err, req, res, next) => {
   console.log(err.stack);
