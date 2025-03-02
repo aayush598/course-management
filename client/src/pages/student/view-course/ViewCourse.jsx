@@ -240,6 +240,7 @@ function ViewCourse() {
     });
     return response?.success;
   };
+console.log(currentLecture);
 
   //   console.log(studentCurrentCourseProgress?.progress.length);
   //   console.log(studentCurrentCourseProgress?.courseDetails.curriculum.length);
@@ -367,7 +368,7 @@ function ViewCourse() {
                 </div>
 
                 <div className="bg-white dark:bg-gray-800 rounded-lg p-6">
-                  <Quiz isDarkMode={darkMode} topic={currentLecture?.title} />
+                  <Quiz isDarkMode={darkMode} topic={currentLecture?.title} lectureId={currentLecture?._id} />
                 </div>
               </div>
             </div>

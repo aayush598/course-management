@@ -19,6 +19,7 @@ import { SocketContext } from "./context/socket-context/SocketContext";
 import ViewCourse from "./pages/student/view-course/ViewCourse";
 import Forum from "./pages/Forum";
 import ThreadDetails from "./pages/ThreadDetails";
+import Leaderboard from "./pages/leaderboard/Leaderboard";
 
 
 function App() {
@@ -104,7 +105,9 @@ function App() {
         /> */}
         <Route path="course-progress/:id" element={<ViewCourse />} />
         <Route path="forum" element={<Forum />} />
+        
         <Route path="/forum/thread/:threadId" element={<ThreadDetails />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

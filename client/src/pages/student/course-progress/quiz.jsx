@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import axios from "axios";
+import { updateQuizMarksService } from "@/services";
+import { AuthContext } from "@/context/auth-context";
 
-function Quiz({ topic , isDarkMode }) {
+function Quiz({ topic , isDarkMode , lectureId }) {
   const [quiz, setQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
+  const { auth } = useContext(AuthContext);
   const [score, setScore] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -34,15 +37,26 @@ function Quiz({ topic , isDarkMode }) {
   const handleChange = (question, option) => {
     setAnswers({ ...answers, [question]: option });
   };
-
+  console.log("auth" , auth.user._id);
   const submitQuiz = async () => {
     try {
+
+     
+
       const response = await axios.post("http://localhost:5000/quiz/submit-quiz", {
         topic,
         questions: quiz.questions,
         userResponses: answers,
       });
       setScore(`You scored ${response.data.score} out of ${quiz.questions.length}`);
+
+      await updateQuizMarksService({
+        studentId: auth?.user?._id,
+        lectureId,
+        marks: response.data.score,
+        totalMarks: quiz.questions.length
+      }); 
+
     } catch (error) {
       console.error("Error submitting quiz:", error);
       alert("Failed to submit quiz. Try again.");

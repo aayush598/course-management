@@ -222,3 +222,21 @@ export async function getMessageService(senderId) {
   const { data } = await axiosInstance.get(`/chat/get/message/${senderId}`);
   return data;
 }
+
+export async function updateQuizMarksService(formData) {
+  const { data } = await axiosInstance.post(`/quiz/update-quiz-marks`, formData);
+
+  return data;
+}
+
+export async function getQuizMarksService(studentId, lectureId) {
+  const { data } = await axiosInstance.get(`/quiz/get-quiz-marks/${studentId}/${lectureId}`);
+
+  return data;
+}
+
+export async function getLeaderboardService() {
+  const { data } = await axiosInstance.get(`/quiz/get/leaderboard`);
+
+  return data;
+}
