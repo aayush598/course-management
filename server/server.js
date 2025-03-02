@@ -62,6 +62,8 @@ app.use("/chatbot", chatbotRoute);
 app.use("/instructor/referrals", referralRoutes);
 app.use("/chat", chatRoute);
 app.use("/forum", forumRoutes);
+app.use("/assignments", require("./routes/assignment-routes"));
+
 
 app.use((err, req, res, next) => {
   console.log(err.stack);

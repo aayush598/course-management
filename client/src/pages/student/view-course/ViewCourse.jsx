@@ -26,6 +26,7 @@ import {
 import { AuthContext } from "@/context/auth-context";
 import { StudentContext } from "@/context/student-context";
 import Confetti from "react-confetti";
+import Assignment from "./Assignment";
 
 const sampleCourse = {
   id: "1",
@@ -384,7 +385,7 @@ console.log(currentLecture);
               <div className="flex border-b border-gray-200 dark:border-gray-700">
                 <button
                   onClick={() => setActiveTab("content")}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium ${
+                  className={`flex items-center gap-2 px-2 py-3 text-sm font-medium ${
                     activeTab === "content"
                       ? "text-blue-500 border-b-2 border-blue-500"
                       : "text-gray-500"
@@ -395,7 +396,7 @@ console.log(currentLecture);
                 </button>
                 <button
                   onClick={() => setActiveTab("chat")}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium ${
+                  className={`flex items-center gap-2 px-2 py-3 text-sm font-medium ${
                     activeTab === "chat"
                       ? "text-blue-500 border-b-2 border-blue-500"
                       : "text-gray-500"
@@ -406,7 +407,7 @@ console.log(currentLecture);
                 </button>
                 <button
                   onClick={() => setActiveTab("certificate")}
-                  className={`flex items-center gap-2 px-4 py-3 text-sm font-medium ${
+                  className={`flex items-center gap-2 px-2 py-3 text-sm font-medium ${
                     activeTab === "certificate"
                       ? "text-blue-500 border-b-2 border-blue-500"
                       : "text-gray-500"
@@ -414,6 +415,17 @@ console.log(currentLecture);
                 >
                   <Award className="w-4 h-4" />
                   Certificate
+                </button>
+                <button
+                  onClick={() => setActiveTab("assignment")} // Change to "assignment"
+                  className={`flex items-center gap-2 px-2 py-3 text-sm font-medium ${
+                    activeTab === "assignment"
+                      ? "text-blue-500 border-b-2 border-blue-500"
+                      : "text-gray-500"
+                  }`}
+                >
+                  <Award className="w-4 h-4" />
+                  Assignment
                 </button>
               </div>
 
@@ -451,6 +463,10 @@ console.log(currentLecture);
                     onGetCertificate={handleGetCertificate}
                   />
                 )}
+                <Assignment 
+                    courseId={id} 
+                    courseName={studentCurrentCourseProgress?.courseDetails?.title}
+                />
               </div>
             </div>
           )}
