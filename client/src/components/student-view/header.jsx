@@ -41,6 +41,13 @@ function StudentViewCommonHeader() {
           >
             <MessageCircle className="h-5 w-5 mr-2" /> Forum {/* ✅ Add Forum Icon */}
           </Button>
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/leaderboard")} // ✅ Navigate to Forum page
+            className="text-[14px] md:text-[16px] font-medium flex items-center"
+          >
+             Leaderboard
+          </Button>
         </div>
       </div>
       <div className="flex items-center space-x-4">
