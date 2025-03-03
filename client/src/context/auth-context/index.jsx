@@ -38,6 +38,10 @@ export default function AuthProvider({ children }) {
         "accessToken",
         JSON.stringify(data.data.accessToken)
       );
+      sessionStorage.setItem(
+        "authUser", 
+        JSON.stringify(data.data.user)
+      );
       setAuth({
         authenticate: true,
         user: data.data.user,

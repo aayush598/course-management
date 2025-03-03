@@ -51,22 +51,59 @@ export async function addNewCourseService(formData) {
 
   return data;
 }
-
 export async function fetchInstructorCourseDetailsService(id) {
-  const { data } = await axiosInstance.get(
-    `/instructor/course/get/details/${id}`
-  );
+  try {
+    console.log("client\src\services\index.js")
+    const token = JSON.parse(sessionStorage.getItem("accessToken")) || null;
+    const user = JSON.parse(sessionStorage.getItem("authUser")) || null;
+    const userId = user?._id || null;
+    console.log(`index instructor Token: ${token} | User: ${user} | UserId: ${userId}`);
 
-  return data;
+    let url = `/instructor/course/get/details/${id}`;
+    if (userId) {
+      url += `?userId=${userId}`;
+    }
+
+    // Avoid making an API call if the ID is missing
+    if (!id) {
+      console.error("fetchInstructorCourseDetailsService called with invalid ID");
+      return { success: false, message: "Invalid Course ID" };
+    }
+
+    const { data } = await axiosInstance.get(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    console.log(`Fetched Instructor Course Details:`, data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching instructor course details:", error);
+    throw error;
+  }
 }
 
 export async function updateCourseByIdService(id, formData) {
-  const { data } = await axiosInstance.put(
-    `/instructor/course/update/${id}`,
-    formData
-  );
+  try {
+    const token = JSON.parse(sessionStorage.getItem("accessToken")) || null;
+    const user = JSON.parse(sessionStorage.getItem("authUser")) || null;
+    const userId = user?._id || null;
+    console.log(`Token: ${token} | User: ${user} | UserId: ${userId}`);
 
-  return data;
+    if (!id) {
+      console.error("updateCourseByIdService called with invalid ID");
+      return { success: false, message: "Invalid Course ID" };
+    }
+
+    const { data } = await axiosInstance.put(`/instructor/course/update/${id}`, formData, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    console.log(`Course Updated: ${JSON.stringify(data)}`);
+    return data;
+  } catch (error) {
+    console.error("Error updating course:", error);
+    throw error;
+  }
 }
 
 export async function mediaBulkUploadService(formData, onProgressCallback) {
@@ -82,19 +119,68 @@ export async function mediaBulkUploadService(formData, onProgressCallback) {
   return data;
 }
 
-export async function fetchStudentViewCourseListService(query) {
-  const { data } = await axiosInstance.get(`/student/course/get?${query}`);
+export async function fetchStudentViewCourseListService(query = "") {
+  try {
+    const token = JSON.parse(sessionStorage.getItem("accessToken")) || null;
+    const user = JSON.parse(sessionStorage.getItem("authUser")) || null;
+    const userId = user?._id || null;
+    console.log(`toke : ${token} | user : ${user} | userId : ${userId}`);
 
-  return data;
+    let finalQuery = query;
+    if (userId) {
+      finalQuery = query ? `${query}&userId=${userId}` : `userId=${userId}`;
+    }
+
+    // Avoid making an API call with undefined query parameters
+    if (!finalQuery) {
+      console.error("fetchStudentViewCourseListService called with empty query");
+      return { success: false, data: [] };
+    }
+
+    const { data } = await axiosInstance.get(`/student/course/get?${finalQuery}`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    console.log(`Fetch Course Query: ${finalQuery}`); // Debugging
+    return data;
+  } catch (error) {
+    console.error("Error fetching student courses:", error);
+    throw error;
+  }
 }
+
 
 export async function fetchStudentViewCourseDetailsService(courseId) {
-  const { data } = await axiosInstance.get(
-    `/student/course/get/details/${courseId}`
-  );
+  try {
+    const token = JSON.parse(sessionStorage.getItem("accessToken")) || null;
+    const user = JSON.parse(sessionStorage.getItem("authUser")) || null;
+    const userId = user?._id || null;
 
-  return data;
+    if (!courseId) {
+      console.error("fetchStudentViewCourseDetailsService: Missing courseId");
+      return { success: false, message: "Invalid Course ID" };
+    }
+
+    if (!userId) {
+      console.error("fetchStudentViewCourseDetailsService: Missing userId");
+    }
+
+    const url = `/student/course/get/details/${courseId}?userId=${userId}`;
+    
+    console.log(`Fetching Course Details - courseId: ${courseId}, userId: ${userId}`);
+
+    const { data } = await axiosInstance.get(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    console.log("Fetched Course Data:", data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching student course details:", error);
+    throw error;
+  }
 }
+
 
 export async function fetchPopularCoursesService() {
   const { data } = await axiosInstance.get(`/student/course/get/popular-courses` , { 
@@ -117,10 +203,12 @@ export async function fetchExplorePageRecommendationsService(userId) {
 }
 
 export async function recordUserInterectionService(interectioData) {
+  console.log(`Interection Data: ${JSON.stringify(interectioData)}`);
   const { data } = await axiosInstance.post(`/student/course/record-interection`, interectioData );
 
   return data;
 }
+
 
 export async function checkCoursePurchaseInfoService(courseId, studentId) {
   const { data } = await axiosInstance.get(

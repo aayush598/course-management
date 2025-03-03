@@ -13,10 +13,8 @@ import VideoPlayer from "@/components/video-player";
 import { AuthContext } from "@/context/auth-context";
 import { StudentContext } from "@/context/student-context";
 import {
-  checkCoursePurchaseInfoService,
   createPaymentService,
   fetchStudentViewCourseDetailsService,
-  getFreeCourseService,
   recordUserInterectionService,
 } from "@/services";
 import { CheckCircle, Globe, Lock, PlayCircle } from "lucide-react";
@@ -24,43 +22,29 @@ import { useContext, useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 function StudentViewCourseDetailsPage() {
-  const {
-    studentViewCourseDetails,
-    setStudentViewCourseDetails,
-    currentCourseDetailsId,
-    setCurrentCourseDetailsId,
-    loadingState,
-    setLoadingState,
-  } = useContext(StudentContext);
-
+  const { studentViewCourseDetails, setStudentViewCourseDetails, setLoadingState } =
+    useContext(StudentContext);
   const { auth } = useContext(AuthContext);
-
-  const [displayCurrentVideoFreePreview, setDisplayCurrentVideoFreePreview] =
-    useState(null);
-  const [showFreePreviewDialog, setShowFreePreviewDialog] = useState(false);
-  const [approvalUrl, setApprovalUrl] = useState("");
   const navigate = useNavigate();
-  const { id } = useParams();
   const location = useLocation();
 
+  // ✅ Extract courseId correctly
+  const { id: courseId } = useParams();
+  const [currentCourseDetailsId, setCurrentCourseDetailsId] = useState(courseId || null);
+  const [displayCurrentVideoFreePreview, setDisplayCurrentVideoFreePreview] = useState(null);
+  const [showFreePreviewDialog, setShowFreePreviewDialog] = useState(false);
+  const [approvalUrl, setApprovalUrl] = useState("");
+
+  // ✅ Fetch Course Details
   async function fetchStudentViewCourseDetails() {
-    // const checkCoursePurchaseInfoResponse =
-    //   await checkCoursePurchaseInfoService(
-    //     currentCourseDetailsId,
-    //     auth?.user._id
-    //   );
+    if (!courseId) {
+      console.error("fetchStudentViewCourseDetails: Missing courseId");
+      return;
+    }
 
-    // if (
-    //   checkCoursePurchaseInfoResponse?.success &&
-    //   checkCoursePurchaseInfoResponse?.data
-    // ) {
-    //   navigate(`/course-progress/${currentCourseDetailsId}`);
-    //   return;
-    // }
+    console.log(`Fetching Course Details for courseId: ${courseId}`);
 
-    const response = await fetchStudentViewCourseDetailsService(
-      currentCourseDetailsId
-    );
+    const response = await fetchStudentViewCourseDetailsService(courseId);
 
     if (response?.success) {
       setStudentViewCourseDetails(response?.data);
@@ -71,12 +55,39 @@ function StudentViewCourseDetailsPage() {
     }
   }
 
-  function handleSetFreePreview(getCurrentVideoInfo) {
-    console.log(getCurrentVideoInfo);
-    setDisplayCurrentVideoFreePreview(getCurrentVideoInfo?.videoUrl);
-  }
+  // ✅ Record User Interaction
+  const recordInterectio = async ({ userId, courseId, interactionType }) => {
+    if (!courseId) {
+      console.error("recordInterection: courseId is missing");
+      return;
+    }
 
+    console.log(`Recording interaction: userId=${userId}, courseId=${courseId}, interactionType=${interactionType}`);
+
+    try {
+      const response = await recordUserInterectionService({
+        userId,
+        courseId,
+        interactionType,
+      });
+
+      if (response?.success) {
+        console.log("Interaction recorded successfully!");
+      } else {
+        console.error("Failed to record interaction:", response?.message);
+      }
+    } catch (error) {
+      console.error("Error in recordInterectio:", error);
+    }
+  };
+
+  // ✅ Handle Course Purchase
   async function handleCreatePayment() {
+    if (!courseId) {
+      console.error("handleCreatePayment: Missing courseId");
+      return;
+    }
+
     const paymentPayload = {
       userId: auth?.user?._id,
       userName: auth?.user?.userName,
@@ -91,100 +102,51 @@ function StudentViewCourseDetailsPage() {
       instructorName: studentViewCourseDetails?.instructorName,
       courseImage: studentViewCourseDetails?.image,
       courseTitle: studentViewCourseDetails?.title,
-      courseId: studentViewCourseDetails?._id,
-      coursePricing: studentViewCourseDetails?.pricing ,
-      
+      courseId: courseId,
+      coursePricing: studentViewCourseDetails?.pricing,
     };
 
-    console.log(paymentPayload, "paymentPayload");
+    console.log("Payment Payload:", paymentPayload);
 
     const response = await createPaymentService(paymentPayload);
-    // const response = {success : true}
-    if (response.success) {
-      sessionStorage.setItem(
-        "currentOrderId",
-        JSON.stringify(response?.data?.orderId)
-      );
-      recordInterectio({userId :auth?.user?._id , courseId : currentCourseDetailsId , interactionType : "enroll"});
+
+    if (response?.success) {
+      sessionStorage.setItem("currentOrderId", JSON.stringify(response?.data?.orderId));
+      recordInterectio({ userId: auth?.user?._id, courseId, interactionType: "enroll" });
       setApprovalUrl(response?.data?.approveUrl);
     }
-    // const response = await getFreeCourseService(paymentPayload);
-    if (response?.success) {
-      console.log("response.data success", response?.data);
-    }
   }
+
+  // ✅ Effects
+  useEffect(() => {
+    if (courseId) {
+      setCurrentCourseDetailsId(courseId);
+      fetchStudentViewCourseDetails();
+    }
+  }, [courseId]);
+
+  useEffect(() => {
+    if (courseId) {
+      recordInterectio({ userId: auth?.user?._id, courseId, interactionType: "view" });
+    }
+  }, [courseId]);
 
   useEffect(() => {
     if (displayCurrentVideoFreePreview !== null) setShowFreePreviewDialog(true);
   }, [displayCurrentVideoFreePreview]);
 
-  useEffect(() => {
-    if (currentCourseDetailsId !== null) fetchStudentViewCourseDetails();
-  }, [currentCourseDetailsId]);
-
-  useEffect(() => {
-    if (id) setCurrentCourseDetailsId(id);
-  }, [id]);
-
-  useEffect(() => {
-    if (!location.pathname.includes("course/details"))
-      setStudentViewCourseDetails(null),
-        setCurrentCourseDetailsId(null),
-        setCoursePurchaseId(null);
-  }, [location.pathname]);
-
-  const recordInterectio = async ({userId , courseId , interactionType}) => {
-   const response = await recordUserInterectionService(
-      {
-        userId ,
-        courseId ,
-        interactionType ,
-      }
-    );
-    return response?.success;
-  };
-
-  useEffect(() => {
-    
-    recordInterectio({userId :auth?.user?._id , courseId : currentCourseDetailsId , interactionType : "view"});
-    
-  }, []);
-
-  if (loadingState) return <Skeleton />;
-
+  // ✅ Redirect to Payment if Approval URL Exists
   if (approvalUrl !== "") {
     window.location.href = approvalUrl;
   }
 
-  const getIndexOfFreePreviewUrl =
-    studentViewCourseDetails !== null
-      ? studentViewCourseDetails?.curriculum?.findIndex(
-          (item) => item.freePreview
-        )
-      : -1;
-
   return (
-    <div className=" mx-auto p-4">
+    <div className="mx-auto p-4">
       <div className="bg-gray-900 text-white p-8 rounded-t-lg">
-        <h1 className="text-3xl font-bold mb-4">
-          {studentViewCourseDetails?.title}
-        </h1>
+        <h1 className="text-3xl font-bold mb-4">{studentViewCourseDetails?.title}</h1>
         <p className="text-xl mb-4">{studentViewCourseDetails?.subtitle}</p>
-        <div className="flex items-center space-x-4 mt-2 text-sm">
-          <span>Created By {studentViewCourseDetails?.instructorName}</span>
-          <span>Created On {studentViewCourseDetails?.date.split("T")[0]}</span>
-          <span className="flex items-center">
-            <Globe className="mr-1 h-4 w-4" />
-            {studentViewCourseDetails?.primaryLanguage}
-          </span>
-          <span>
-            {studentViewCourseDetails?.students.length}{" "}
-            {studentViewCourseDetails?.students.length <= 1
-              ? "Student"
-              : "Students"}
-          </span>
-        </div>
       </div>
+
       <div className="flex flex-col md:flex-row gap-8 mt-8">
         <main className="flex-grow">
           <Card className="mb-8">
@@ -194,7 +156,7 @@ function StudentViewCourseDetailsPage() {
             <CardContent>
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {studentViewCourseDetails?.objectives
-                  .split(",")
+                  ?.split(",")
                   .map((objective, index) => (
                     <li key={index} className="flex items-start">
                       <CheckCircle className="mr-2 h-5 w-5 text-green-500 flex-shrink-0" />
@@ -204,64 +166,38 @@ function StudentViewCourseDetailsPage() {
               </ul>
             </CardContent>
           </Card>
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle>Course Description</CardTitle>
-            </CardHeader>
-            <CardContent>{studentViewCourseDetails?.description}</CardContent>
-          </Card>
+
           <Card className="mb-8">
             <CardHeader>
               <CardTitle>Course Curriculum</CardTitle>
             </CardHeader>
             <CardContent>
-              {studentViewCourseDetails?.curriculum?.map(
-                (curriculumItem, index) => (
-                  <li
-                    className={`${
-                      curriculumItem?.freePreview
-                        ? "cursor-pointer"
-                        : "cursor-not-allowed"
-                    } flex items-center mb-4`}
-                    onClick={
-                      curriculumItem?.freePreview
-                        ? () => handleSetFreePreview(curriculumItem)
-                        : null
-                    }
-                    key={curriculumItem.id || index}
-                  >
-                    {curriculumItem?.freePreview ? (
-                      <PlayCircle className="mr-2 h-4 w-4" />
-                    ) : (
-                      <Lock className="mr-2 h-4 w-4" />
-                    )}
-                    <span>{curriculumItem?.title}</span>
-                  </li>
-                )
-              )}
+              {studentViewCourseDetails?.curriculum?.map((curriculumItem, index) => (
+                <li
+                  key={curriculumItem?.id || index}
+                  className={`${curriculumItem?.freePreview ? "cursor-pointer" : "cursor-not-allowed"} flex items-center mb-4`}
+                  onClick={curriculumItem?.freePreview ? () => setDisplayCurrentVideoFreePreview(curriculumItem.videoUrl) : null}
+                >
+                  {curriculumItem?.freePreview ? (
+                    <PlayCircle className="mr-2 h-4 w-4" />
+                  ) : (
+                    <Lock className="mr-2 h-4 w-4" />
+                  )}
+                  <span>{curriculumItem?.title}</span>
+                </li>
+              ))}
             </CardContent>
           </Card>
         </main>
+
         <aside className="w-full md:w-[500px]">
           <Card className="sticky top-4">
             <CardContent className="p-6">
               <div className="aspect-video mb-4 rounded-lg flex items-center justify-center">
-                <VideoPlayer
-                  url={
-                    getIndexOfFreePreviewUrl !== -1
-                      ? studentViewCourseDetails?.curriculum[
-                          getIndexOfFreePreviewUrl
-                        ].videoUrl
-                      : ""
-                  }
-                  width="450px"
-                  height="200px"
-                />
+                <VideoPlayer url={displayCurrentVideoFreePreview} width="450px" height="200px" />
               </div>
               <div className="mb-4">
-                <span className="text-3xl font-bold">
-                  ${studentViewCourseDetails?.pricing}
-                </span>
+                <span className="text-3xl font-bold">${studentViewCourseDetails?.pricing}</span>
               </div>
               <Button onClick={handleCreatePayment} className="w-full">
                 Buy Now
@@ -270,45 +206,6 @@ function StudentViewCourseDetailsPage() {
           </Card>
         </aside>
       </div>
-      <Dialog
-        open={showFreePreviewDialog}
-        onOpenChange={() => {
-          setShowFreePreviewDialog(false);
-          setDisplayCurrentVideoFreePreview(null);
-        }}
-      >
-        <DialogContent className="w-[800px]">
-          <DialogHeader>
-            <DialogTitle>Course Preview</DialogTitle>
-          </DialogHeader>
-          <div className="aspect-video rounded-lg flex items-center justify-center">
-            <VideoPlayer
-              url={displayCurrentVideoFreePreview}
-              width="450px"
-              height="200px"
-            />
-          </div>
-          <div className="flex flex-col gap-2">
-            {studentViewCourseDetails?.curriculum
-              ?.filter((item) => item.freePreview)
-              .map((filteredItem) => (
-                <p
-                  onClick={() => handleSetFreePreview(filteredItem)}
-                  className="cursor-pointer text-[16px] font-medium"
-                >
-                  {filteredItem?.title}
-                </p>
-              ))}
-          </div>
-          <DialogFooter className="sm:justify-start">
-            <DialogClose asChild>
-              <Button type="button" variant="secondary">
-                Close
-              </Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

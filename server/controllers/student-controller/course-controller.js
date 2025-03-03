@@ -1,14 +1,18 @@
 const Course = require("../../models/Course");
 const StudentCourses = require("../../models/StudentCourses");
+const User = require("../../models/User");
+
 
 const getAllStudentViewCourses = async (req, res) => {
   try {
+    console.log("req.query", req.query.userId);
     const {
       category = [],
       level = [],
       primaryLanguage = [],
       sortBy = "price-lowtohigh",
     } = req.query;
+    const userId = req.query.userId;
 
     //console.log(req.query, "req.query");
 
@@ -42,11 +46,29 @@ const getAllStudentViewCourses = async (req, res) => {
         break;
     }
 
+    // Fetch all courses based on filters
     const coursesList = await Course.find(filters).sort(sortParam);
+
+    let discount = 0;
+    
+    console.log(`userId : ${userId}`);
+    if (userId) {
+      const user = await User.findById(userId);
+      if (user && user.referredBy) {
+        discount = 0.1; // 10% discount if registered with a referral code
+      }
+      console.log(`user : ${user} | referredBy : ${user?.referredBy}`);
+    }
+
+    // Apply discount to each course
+    const updatedCourses = coursesList.map((course) => ({
+      ...course.toObject(),
+      pricing: course.pricing * (1 - discount),
+    }));
 
     res.status(200).json({
       success: true,
-      data: coursesList,
+      data: updatedCourses,
     });
   } catch (e) {
     console.error(e);
@@ -59,9 +81,11 @@ const getAllStudentViewCourses = async (req, res) => {
 
 const getStudentViewCourseDetails = async (req, res) => {
   try {
-    const { id } = req.params;
+    console.log("Received request for course details:", req.params, req.query);
     
-    // Validate ID
+    const { id } = req.params;
+    const { userId } = req.query; // ✅ Ensure we extract userId from query params
+
     if (!id) {
       return res.status(400).json({
         success: false,
@@ -70,7 +94,6 @@ const getStudentViewCourseDetails = async (req, res) => {
     }
 
     const courseDetails = await Course.findById(id);
-
     if (!courseDetails) {
       return res.status(404).json({
         success: false,
@@ -79,18 +102,32 @@ const getStudentViewCourseDetails = async (req, res) => {
       });
     }
 
+    let discount = 0;
+    if (userId) {
+      const user = await User.findById(userId);
+      if (user?.referredBy) {
+        discount = 0.1; // ✅ Apply 10% discount if referred
+        console.log(`User referred by: ${user.referredBy}, applying discount.`);
+      }
+    }
+
+    const discountedPrice = courseDetails.pricing * (1 - discount);
+    console.log(`Original Price: ${courseDetails.pricing}, Discounted Price: ${discountedPrice}`);
+
     res.status(200).json({
       success: true,
-      data: courseDetails,
+      data: { ...courseDetails.toObject(), pricing: discountedPrice },
     });
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    console.error("Error fetching course details:", error);
     res.status(500).json({
       success: false,
       message: "An error occurred while fetching course details.",
     });
   }
 };
+
+
 
 const checkCoursePurchaseInfo = async (req, res) => {
   try {

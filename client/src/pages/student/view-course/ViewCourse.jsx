@@ -80,56 +80,54 @@ function ViewCourse() {
     useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [isSideBarOpen, setIsSideBarOpen] = useState(true);
-  const { id } = useParams();
+  const { id: courseId } = useParams(); // Ensure `courseId` is mapped correctly
+  console.log("Extracted courseId from URL params:", courseId); // Debugging log
+
 
   async function fetchCurrentCourseProgress() {
-    const response = await getCurrentCourseProgressService(auth?.user?._id, id);
+    console.log(`Fetching progress for courseId: ${courseId}, userId: ${auth?.user?._id}`);
+    
+    const response = await getCurrentCourseProgressService(auth?.user?._id, courseId);
+    
     if (response?.success) {
       if (!response?.data?.isPurchased) {
         setLockCourse(true);
       } else {
-        console.log(response?.data);
-
+        console.log("Fetched Progress Data:", response?.data);
+  
         setStudentCurrentCourseProgress({
           courseDetails: response?.data?.courseDetails,
           progress: response?.data?.progress,
         });
-
+  
         if (response?.data?.completed) {
           setCurrentLecture(response?.data?.courseDetails?.curriculum[0]);
           setShowCourseCompleteDialog(true);
           recordInterection({
             userId: auth?.user?._id,
-            courseId: id,
+            courseId: courseId,
             interactionType: "complete",
           });
           setShowConfetti(true);
-
           return;
         }
-
-        // Proper logging for production can be added here if needed
-
+  
         if (response?.data?.progress?.length === 0) {
           setCurrentLecture(response?.data?.courseDetails?.curriculum[0]);
         } else {
-          // Proper logging for production can be added here if needed
           const lastIndexOfViewedAsTrue = response?.data?.progress.reduceRight(
-            (acc, obj, index) => {
-              return acc === -1 && obj.viewed ? index : acc;
-            },
+            (acc, obj, index) => (acc === -1 && obj.viewed ? index : acc),
             -1
           );
-
+  
           setCurrentLecture(
-            response?.data?.courseDetails?.curriculum[
-              lastIndexOfViewedAsTrue + 1
-            ]
+            response?.data?.courseDetails?.curriculum[lastIndexOfViewedAsTrue + 1]
           );
         }
       }
     }
   }
+  
 
   async function updateCourseProgress() {
     if (currentLecture) {
@@ -234,13 +232,30 @@ function ViewCourse() {
   };
 
   const recordInterection = async ({ userId, courseId, interactionType }) => {
-    const response = await recordUserInterectionService({
-      userId,
-      courseId,
-      interactionType,
-    });
-    return response?.success;
+    if (!courseId) {
+      console.error("recordInterection: Missing courseId");
+      return;
+    }
+  
+    console.log(`Recording interaction: userId=${userId}, courseId=${courseId}, interactionType=${interactionType}`);
+  
+    try {
+      const response = await recordUserInterectionService({
+        userId,
+        courseId,
+        interactionType,
+      });
+  
+      if (response?.success) {
+        console.log("Interaction recorded successfully!");
+      } else {
+        console.error("Failed to record interaction:", response?.message);
+      }
+    } catch (error) {
+      console.error("Error in recordInterection:", error);
+    }
   };
+  
 console.log(currentLecture);
 
   //   console.log(studentCurrentCourseProgress?.progress.length);

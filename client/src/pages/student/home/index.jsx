@@ -113,6 +113,7 @@ function StudentHomePage() {
           {studentViewCoursesList && studentViewCoursesList.length > 0 ? (
             studentViewCoursesList.map((courseItem) => (
               <div
+                key={courseItem?._id}
                 onClick={() => handleCourseNavigate(courseItem?._id)}
                 className="border rounded-lg overflow-hidden shadow cursor-pointer"
               >
@@ -142,6 +143,7 @@ function StudentHomePage() {
           {recommendedCourses && recommendedCourses?.popular?.length > 0 ? (
             recommendedCourses?.popular?.map((courseItem) => (
               <div
+                key={courseItem?._id}
                 onClick={() => handleCourseNavigate(courseItem?._id)}
                 className="border rounded-lg overflow-hidden shadow cursor-pointer"
               >
@@ -171,6 +173,7 @@ function StudentHomePage() {
           {recommendedCourses && recommendedCourses?.recommended?.length > 0 ? (
             recommendedCourses?.recommended?.map((courseItem) => (
               <div
+                key={courseItem?._id}
                 onClick={() => handleCourseNavigate(courseItem?._id)}
                 className="border rounded-lg overflow-hidden shadow cursor-pointer"
               >
