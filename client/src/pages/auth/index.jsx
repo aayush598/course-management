@@ -12,6 +12,8 @@ import { AuthContext } from "@/context/auth-context";
 import { GraduationCap } from "lucide-react";
 import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function AuthPage() {
   const [activeTab, setActiveTab] = useState("signin");
@@ -52,13 +54,30 @@ function AuthPage() {
     setReferralCode(e.target.value);
   }
 
-  function handleRegister(e) {
+  async function handleRegister(e) {
     e.preventDefault();
-    handleRegisterUser({ ...signUpFormData, referralCode });
+    try {
+      const result = await handleRegisterUser({ ...signUpFormData, referralCode });
+
+      if (result?.success) {
+        toast.success("User registered successfully! Redirecting to login...", {
+          duration: 3000, // 3 seconds
+        });
+
+        setTimeout(() => {
+          setActiveTab("signin"); // Redirect to login tab after success
+        }, 3000);
+      } else {
+        toast.error(result?.message || "Registration failed. Please try again.");
+      }
+    } catch (error) {
+      toast.error("An error occurred while registering. Please try again.");
+    }
   }
   
 
   return (
+    
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-14 flex items-center border-b">
         <Link to={"/"} className="flex items-center justify-center">

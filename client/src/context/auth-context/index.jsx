@@ -18,14 +18,15 @@ export default function AuthProvider({ children }) {
     try {
       const data = await registerService(userData);
       if (data.success) {
-        console.log("User registered successfully!");
+        return { success: true, message: "User registered successfully!" };
       } else {
-        console.log("Registration failed:", data.message);
+        return { success: false, message: data.message || "Registration failed" };
       }
     } catch (error) {
-      console.log("Error registering user:", error);
+      return { success: false, message: "Error registering user" };
     }
   }
+  
   
 
   async function handleLoginUser(event) {

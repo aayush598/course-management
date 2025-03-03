@@ -20,7 +20,8 @@ import ViewCourse from "./pages/student/view-course/ViewCourse";
 import Forum from "./pages/Forum";
 import ThreadDetails from "./pages/ThreadDetails";
 import Leaderboard from "./pages/leaderboard/Leaderboard";
-
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   const { auth } = useContext(AuthContext);
@@ -39,6 +40,8 @@ function App() {
 
   return (
     <>
+    <ToastContainer position="top-right" autoClose={3000} />
+
       <Routes>
         <Route
           path="/auth"
