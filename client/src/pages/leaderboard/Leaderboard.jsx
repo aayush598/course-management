@@ -61,7 +61,7 @@ const Leaderboard = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {students.map((student, index) => (
                 <LeaderboardRow
-                  key={student.id}
+                  key={student.studentId}
                   student={student}
                   rank={index + 1}
                 />

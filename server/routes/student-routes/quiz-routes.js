@@ -195,26 +195,52 @@ router.get("/get-all-quiz-marks", async (req, res) => {
 
 router.get("/get/leaderboard", async (req, res) => {
     try {
-        const students = await QuizMark.find({})
-            .populate('student', 'userName')
-            .sort({marks: -1})
-            .limit(10);
-        
-        console.log(students);
-        
-        const studentsWithRank = students.map(student => {
-            return {
-                id: student._id,
-                userName: student.student?.userName,
-                marks: student.marks,
-                totalMarks: student.totalMarks,
-                result: student.totalMarks > 0 ? 100 * student.marks / student.totalMarks : 0
+        // Use aggregation to group by student and sum marks
+        const leaderboard = await QuizMark.aggregate([
+            {
+          $group: {
+              _id: "$student",
+              totalMarksObtained: { $sum: "$marks" },
+              totalPossibleMarks: { $sum: "$totalMarks" }
+          }
+            },
+            {
+          $lookup: {
+              from: "users", // Assuming your user collection name
+              localField: "_id",
+              foreignField: "_id",
+              as: "studentInfo"
+          }
+            },
+            {
+          $addFields: {
+              percentage: {
+            $cond: [
+                { $gt: ["$totalPossibleMarks", 0] },
+                { $multiply: [{ $divide: ["$totalMarksObtained", "$totalPossibleMarks"] }, 100] },
+                0
+            ]
+              },
+              userName: { $arrayElemAt: ["$studentInfo.userName", 0] }
+          }
+            },
+            { $sort: { percentage: -1 } },
+            { $limit: 10 },
+            {
+          $project: {
+              _id: 0,
+              studentId: "$_id",
+              userName: 1,
+              totalMarksObtained: 1,
+              totalPossibleMarks: 1,
+              percentage: 1
+          }
             }
-        });
+        ]);
         
-        console.log(studentsWithRank);
+        console.log(leaderboard);
         
-        res.status(200).json({ success: true, data: studentsWithRank });
+        res.status(200).json({ success: true, data: leaderboard });
     } catch (error) {
         console.error("Error:", error.message);
         res.status(500).json({ success: false, error: error.message });

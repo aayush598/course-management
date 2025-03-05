@@ -64,7 +64,7 @@ const LeaderboardRow = ({ student, rank }) => {
       <td
         className={`py-6 px-8 text-right ${styles.scoreClass} text-lg font-semibold`}
       >
-        {student.result.toFixed(1)}%
+        {student.percentage.toFixed(1)}%
       </td>
     </tr>
   );

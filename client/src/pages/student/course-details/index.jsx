@@ -15,6 +15,7 @@ import { StudentContext } from "@/context/student-context";
 import {
   createPaymentService,
   fetchStudentViewCourseDetailsService,
+  getFreeCourseService,
   recordUserInterectionService,
 } from "@/services";
 import { CheckCircle, Globe, Lock, PlayCircle } from "lucide-react";
@@ -22,16 +23,22 @@ import { useContext, useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 function StudentViewCourseDetailsPage() {
-  const { studentViewCourseDetails, setStudentViewCourseDetails, setLoadingState } =
-    useContext(StudentContext);
+  const {
+    studentViewCourseDetails,
+    setStudentViewCourseDetails,
+    setLoadingState,
+  } = useContext(StudentContext);
   const { auth } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
 
   // ✅ Extract courseId correctly
   const { id: courseId } = useParams();
-  const [currentCourseDetailsId, setCurrentCourseDetailsId] = useState(courseId || null);
-  const [displayCurrentVideoFreePreview, setDisplayCurrentVideoFreePreview] = useState(null);
+  const [currentCourseDetailsId, setCurrentCourseDetailsId] = useState(
+    courseId || null
+  );
+  const [displayCurrentVideoFreePreview, setDisplayCurrentVideoFreePreview] =
+    useState(null);
   const [showFreePreviewDialog, setShowFreePreviewDialog] = useState(false);
   const [approvalUrl, setApprovalUrl] = useState("");
 
@@ -62,7 +69,9 @@ function StudentViewCourseDetailsPage() {
       return;
     }
 
-    console.log(`Recording interaction: userId=${userId}, courseId=${courseId}, interactionType=${interactionType}`);
+    console.log(
+      `Recording interaction: userId=${userId}, courseId=${courseId}, interactionType=${interactionType}`
+    );
 
     try {
       const response = await recordUserInterectionService({
@@ -108,12 +117,17 @@ function StudentViewCourseDetailsPage() {
 
     console.log("Payment Payload:", paymentPayload);
 
-    const response = await createPaymentService(paymentPayload);
+    // const response = await createPaymentService(paymentPayload);
 
+    // if (response?.success) {
+    //   sessionStorage.setItem("currentOrderId", JSON.stringify(response?.data?.orderId));
+    //   recordInterectio({ userId: auth?.user?._id, courseId, interactionType: "enroll" });
+    //   setApprovalUrl(response?.data?.approveUrl);
+    // }
+
+    const response = await getFreeCourseService(paymentPayload);
     if (response?.success) {
-      sessionStorage.setItem("currentOrderId", JSON.stringify(response?.data?.orderId));
-      recordInterectio({ userId: auth?.user?._id, courseId, interactionType: "enroll" });
-      setApprovalUrl(response?.data?.approveUrl);
+      console.log("response.data success", response?.data);
     }
   }
 
@@ -127,7 +141,11 @@ function StudentViewCourseDetailsPage() {
 
   useEffect(() => {
     if (courseId) {
-      recordInterectio({ userId: auth?.user?._id, courseId, interactionType: "view" });
+      recordInterectio({
+        userId: auth?.user?._id,
+        courseId,
+        interactionType: "view",
+      });
     }
   }, [courseId]);
 
@@ -143,7 +161,9 @@ function StudentViewCourseDetailsPage() {
   return (
     <div className="mx-auto p-4">
       <div className="bg-gray-900 text-white p-8 rounded-t-lg">
-        <h1 className="text-3xl font-bold mb-4">{studentViewCourseDetails?.title}</h1>
+        <h1 className="text-3xl font-bold mb-4">
+          {studentViewCourseDetails?.title}
+        </h1>
         <p className="text-xl mb-4">{studentViewCourseDetails?.subtitle}</p>
       </div>
 
@@ -172,20 +192,33 @@ function StudentViewCourseDetailsPage() {
               <CardTitle>Course Curriculum</CardTitle>
             </CardHeader>
             <CardContent>
-              {studentViewCourseDetails?.curriculum?.map((curriculumItem, index) => (
-                <li
-                  key={curriculumItem?.id || index}
-                  className={`${curriculumItem?.freePreview ? "cursor-pointer" : "cursor-not-allowed"} flex items-center mb-4`}
-                  onClick={curriculumItem?.freePreview ? () => setDisplayCurrentVideoFreePreview(curriculumItem.videoUrl) : null}
-                >
-                  {curriculumItem?.freePreview ? (
-                    <PlayCircle className="mr-2 h-4 w-4" />
-                  ) : (
-                    <Lock className="mr-2 h-4 w-4" />
-                  )}
-                  <span>{curriculumItem?.title}</span>
-                </li>
-              ))}
+              {studentViewCourseDetails?.curriculum?.map(
+                (curriculumItem, index) => (
+                  <li
+                    key={curriculumItem?.id || index}
+                    className={`${
+                      curriculumItem?.freePreview
+                        ? "cursor-pointer"
+                        : "cursor-not-allowed"
+                    } flex items-center mb-4`}
+                    onClick={
+                      curriculumItem?.freePreview
+                        ? () =>
+                            setDisplayCurrentVideoFreePreview(
+                              curriculumItem.videoUrl
+                            )
+                        : null
+                    }
+                  >
+                    {curriculumItem?.freePreview ? (
+                      <PlayCircle className="mr-2 h-4 w-4" />
+                    ) : (
+                      <Lock className="mr-2 h-4 w-4" />
+                    )}
+                    <span>{curriculumItem?.title}</span>
+                  </li>
+                )
+              )}
             </CardContent>
           </Card>
         </main>
@@ -194,10 +227,16 @@ function StudentViewCourseDetailsPage() {
           <Card className="sticky top-4">
             <CardContent className="p-6">
               <div className="aspect-video mb-4 rounded-lg flex items-center justify-center">
-                <VideoPlayer url={displayCurrentVideoFreePreview} width="450px" height="200px" />
+                <VideoPlayer
+                  url={displayCurrentVideoFreePreview}
+                  width="450px"
+                  height="200px"
+                />
               </div>
               <div className="mb-4">
-                <span className="text-3xl font-bold">${studentViewCourseDetails?.pricing}</span>
+                <span className="text-3xl font-bold">
+                  ${studentViewCourseDetails?.pricing}
+                </span>
               </div>
               <Button onClick={handleCreatePayment} className="w-full">
                 Buy Now
