@@ -189,7 +189,7 @@ function ViewCourse() {
 
   useEffect(() => {
     fetchCurrentCourseProgress();
-  }, [id]);
+  }, [courseId]);
 
   useEffect(() => {
     if (currentLecture?.progressValue === 1) updateCourseProgress();
@@ -223,7 +223,7 @@ function ViewCourse() {
         setShowCourseCompleteDialog(true);
         recordInterection({
           userId: auth?.user?._id,
-          courseId: id,
+          courseId: courseId,
           interactionType: "complete",
         });
         setShowConfetti(true);
@@ -479,7 +479,7 @@ console.log(currentLecture);
                   />
                 )}
                 <Assignment 
-                    courseId={id} 
+                    courseId={courseId} 
                     courseName={studentCurrentCourseProgress?.courseDetails?.title}
                 />
               </div>
@@ -490,7 +490,7 @@ console.log(currentLecture);
 
       {/* Course Complete Dialog */}
       {showCourseCompleteDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center z-50 justify-center">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg max-w-md">
             <h2 className="text-2xl font-bold mb-4">Congratulations!</h2>
             <p className="mb-6">You have completed the course!</p>
